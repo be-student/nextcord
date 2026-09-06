@@ -3654,7 +3654,8 @@ class Guild(Hashable):
         channel: :class:`abc.GuildChannel`
             The channel the event will happen in, if any
         metadata: :class:`EntityMetadata`
-            The metadata for the event
+            The metadata for the event. This is required for external events,
+            and its ``location`` must not be ``None``.
         name: :class:`str`
             The name of the event
         privacy_level: :class:`ScheduledEventPrivacyLevel`
@@ -3677,7 +3678,17 @@ class Guild(Hashable):
         -------
         :class:`ScheduledEvent`
             The created event object.
+
+        Raises
+        ------
+        ValueError
+            The event is external and no metadata location was provided.
         """
+        if entity_type is ScheduledEventEntityType.external and (
+            metadata is MISSING or metadata.location is None
+        ):
+            raise ValueError("external scheduled events require a metadata location")
+
         payload: Dict[str, Any] = {
             "name": name,
             "entity_type": entity_type.value,
