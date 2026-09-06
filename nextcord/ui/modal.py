@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, Optional,
 
 from ..components import Component
 from ..utils import MISSING
-from .item import Item
+from .item import Item, _validate_custom_id
 from .view import _component_to_item, _ViewWeights, _walk_all_components
 
 __all__ = (
@@ -105,6 +105,15 @@ class Modal:
         self.__timeout_task: Optional[asyncio.Task[None]] = None
         self.__background_tasks: Set[asyncio.Task[None]] = set()
         self.__stopped: asyncio.Future[bool] = loop.create_future()
+
+    @property
+    def custom_id(self) -> str:
+        return self._custom_id
+
+    @custom_id.setter
+    def custom_id(self, value: str) -> None:
+        _validate_custom_id(value)
+        self._custom_id = value
 
     async def __timeout_task_impl(self) -> None:
         while True:
