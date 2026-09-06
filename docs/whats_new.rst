@@ -46,6 +46,7 @@ New Features
     - :attr:`RoleTags.available_for_purchase`
     - :attr:`RoleTags.guild_connections`
 - |commands| Add a specific :exc:`ChannelTypeNotFound <nextcord.ext.commands.errors.ChannelTypeNotFound>` exception for channel converters when the channel is found but not of the right type (:issue:`1274`).
+- |commands| Add a bot-level ``ignore_extra`` default for prefix commands (:issue:`100`).
 
 Bug Fixes
 ~~~~~~~~~

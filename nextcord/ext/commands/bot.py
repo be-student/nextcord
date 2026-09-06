@@ -36,7 +36,7 @@ import nextcord
 from . import errors
 from .cog import Cog
 from .context import Context
-from .core import GroupMixin
+from .core import Command, GroupMixin
 from .help import DefaultHelpCommand, HelpCommand
 from .view import StringView
 
@@ -159,6 +159,7 @@ class BotBase(GroupMixin):
         owner_ids: Optional[Iterable[int]],
         strip_after_prefix: bool,
         case_insensitive: bool,
+        ignore_extra: bool,
     ) -> None:
         super().__init__(
             case_insensitive=case_insensitive,
@@ -176,6 +177,7 @@ class BotBase(GroupMixin):
         self.owner_id = owner_id
         self.owner_ids = owner_ids or set()
         self.strip_after_prefix = strip_after_prefix
+        self.ignore_extra = ignore_extra
 
         if self.owner_id and self.owner_ids:
             raise TypeError("Both owner_id and owner_ids are set.")
@@ -208,6 +210,18 @@ class BotBase(GroupMixin):
             self.help_command = DefaultHelpCommand()
         else:
             self.help_command = help_command
+
+    @nextcord.utils.copy_doc(GroupMixin.add_command)
+    def add_command(self, command: Command) -> None:
+        def apply_default(candidate: Command) -> None:
+            if "ignore_extra" not in candidate.__original_kwargs__:
+                candidate.ignore_extra = self.ignore_extra
+
+        apply_default(command)
+        if isinstance(command, GroupMixin):
+            for child in command.walk_commands():
+                apply_default(child)
+        super().add_command(command)
 
     # internal helpers
 
@@ -1434,6 +1448,10 @@ class Bot(BotBase, nextcord.Client):
         the ``command_prefix`` is set to ``!``. Defaults to ``False``.
 
         .. versionadded:: 1.7
+    ignore_extra: :class:`bool`
+        The default value of :attr:`.Command.ignore_extra` for commands added
+        to the bot. An explicit value passed to a command takes precedence.
+        Defaults to ``True``.
     """
 
     def __init__(
@@ -1477,6 +1495,7 @@ class Bot(BotBase, nextcord.Client):
         owner_ids: Optional[Iterable[int]] = None,
         strip_after_prefix: bool = False,
         case_insensitive: bool = False,
+        ignore_extra: bool = True,
     ) -> None:
         nextcord.Client.__init__(
             self,
@@ -1516,6 +1535,7 @@ class Bot(BotBase, nextcord.Client):
             owner_ids=owner_ids,
             strip_after_prefix=strip_after_prefix,
             case_insensitive=case_insensitive,
+            ignore_extra=ignore_extra,
         )
 
 
@@ -1566,6 +1586,7 @@ class AutoShardedBot(BotBase, nextcord.AutoShardedClient):
         owner_ids: Optional[Iterable[int]] = None,
         strip_after_prefix: bool = False,
         case_insensitive: bool = False,
+        ignore_extra: bool = True,
     ) -> None:
         nextcord.AutoShardedClient.__init__(
             self,
@@ -1606,4 +1627,5 @@ class AutoShardedBot(BotBase, nextcord.AutoShardedClient):
             owner_ids=owner_ids,
             strip_after_prefix=strip_after_prefix,
             case_insensitive=case_insensitive,
+            ignore_extra=ignore_extra,
         )
