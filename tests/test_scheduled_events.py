@@ -17,23 +17,35 @@ class TestCreateScheduledEvent(unittest.IsolatedAsyncioTestCase):
         self.start_time = datetime.datetime.now(datetime.timezone.utc)
 
     async def test_external_event_requires_metadata(self) -> None:
-        with self.assertRaisesRegex(ValueError, "require a metadata location"):
+        error = None
+        try:
             await self.guild.create_scheduled_event(
                 name="External event",
                 entity_type=ScheduledEventEntityType.external,
                 start_time=self.start_time,
             )
+        except ValueError as exc:
+            error = str(exc)
+
+        assert error is not None, "missing metadata should be rejected"
+        assert "require a metadata location" in error
 
         self.http.create_event.assert_not_awaited()
 
     async def test_external_event_requires_metadata_location(self) -> None:
-        with self.assertRaisesRegex(ValueError, "require a metadata location"):
+        error = None
+        try:
             await self.guild.create_scheduled_event(
                 name="External event",
                 entity_type=ScheduledEventEntityType.external,
                 start_time=self.start_time,
                 metadata=EntityMetadata(),
             )
+        except ValueError as exc:
+            error = str(exc)
+
+        assert error is not None, "metadata without a location should be rejected"
+        assert "require a metadata location" in error
 
         self.http.create_event.assert_not_awaited()
 
@@ -49,7 +61,7 @@ class TestCreateScheduledEvent(unittest.IsolatedAsyncioTestCase):
                 metadata=metadata,
             )
 
-        self.assertIs(result, event)
+        assert result is event
         self.http.create_event.assert_awaited_once_with(
             123,
             reason=None,
@@ -70,9 +82,9 @@ class TestCreateScheduledEvent(unittest.IsolatedAsyncioTestCase):
                 start_time=self.start_time,
             )
 
-        self.assertIs(result, event)
+        assert result is event
         self.http.create_event.assert_awaited_once()
-        self.assertNotIn("entity_metadata", self.http.create_event.await_args.kwargs)
+        assert "entity_metadata" not in self.http.create_event.await_args.kwargs
 
 
 if __name__ == "__main__":
