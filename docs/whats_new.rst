@@ -23,6 +23,7 @@ specifically lower-level support for the "Message Components" section.
 New Features
 ~~~~~~~~~~~~
 
+- Add :attr:`Thread.starter_message_id`, :meth:`Thread.get_partial_starter_message`, and :meth:`Thread.fetch_starter_message` for working with a thread's starter message (:issue:`1215`).
 - Add support for `new auto moderation types <https://docs.discord.com/developers/change-log#may-31-2024>`_ (:issue:`1087`):
     - :attr:`AutoModerationEventType.member_update`
     - :attr:`AutoModerationTriggerType.member_profile`

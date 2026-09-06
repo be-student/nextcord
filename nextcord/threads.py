@@ -258,6 +258,16 @@ class Thread(Messageable, Hashable, PinsMixin):
         return self._state._get_message(self.last_message_id) if self.last_message_id else None
 
     @property
+    def starter_message_id(self) -> int:
+        """:class:`int`: The ID of the message that started this thread.
+
+        Discord uses the thread ID as the starter message ID.
+
+        .. versionadded:: 3.2
+        """
+        return self.id
+
+    @property
     def category(self) -> Optional[CategoryChannel]:
         """The category channel the parent channel belongs to, if applicable.
 
@@ -776,6 +786,44 @@ class Thread(Messageable, Hashable, PinsMixin):
         from .message import PartialMessage
 
         return PartialMessage(channel=self, id=message_id)
+
+    def get_partial_starter_message(self) -> PartialMessage:
+        """Creates a :class:`PartialMessage` for this thread's starter message.
+
+        This does not make an API request. Use :meth:`fetch_starter_message` to
+        retrieve the complete message from Discord.
+
+        .. versionadded:: 3.2
+
+        Returns
+        -------
+        :class:`PartialMessage`
+            The partial starter message.
+        """
+        return self.get_partial_message(self.starter_message_id)
+
+    async def fetch_starter_message(self) -> Message:
+        """|coro|
+
+        Retrieves this thread's starter message from Discord.
+
+        .. versionadded:: 3.2
+
+        Raises
+        ------
+        NotFound
+            The starter message was not found.
+        Forbidden
+            You do not have permission to retrieve the starter message.
+        HTTPException
+            Retrieving the starter message failed.
+
+        Returns
+        -------
+        :class:`Message`
+            The starter message.
+        """
+        return await self.fetch_message(self.starter_message_id)
 
     def _add_member(self, member: ThreadMember) -> None:
         self._members[member.id] = member
