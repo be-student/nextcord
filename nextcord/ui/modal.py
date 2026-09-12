@@ -93,6 +93,8 @@ class Modal:
         self.title = title
         self.timeout = timeout
         self._provided_custom_id = custom_id is not MISSING
+        # Assignment goes through the property setter, so generated and supplied
+        # IDs use the same validation as later reassignment.
         self.custom_id = os.urandom(16).hex() if custom_id is MISSING else custom_id
         self.auto_defer = auto_defer
 
@@ -108,6 +110,7 @@ class Modal:
 
     @property
     def custom_id(self) -> str:
+        """:class:`str`: The validated ID sent with modal interactions."""
         return self._custom_id
 
     @custom_id.setter
